@@ -1,0 +1,51 @@
+name: SonarCloud - Code Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  sonarcloud:
+    name: Analyze with SonarCloud
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Checkout avec tout l'historique (utile pour l'analyse)
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2) Node pour installer et (optionnel) lancer les tests + coverage
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      # (Optionnel mais recommandé) lancer tes tests pour générer le coverage LCOV
+      # Si tu utilises Jest, ajoute dans package.json: "test": "jest --coverage"
+      - name: Run tests (with coverage)
+        run: |
+          if [ -f package.json ]; then
+            if npm run | grep -q " test"; then
+              npm test --silent || true
+            fi
+          fi
+
+      # 3) SonarCloud Scanner
+      # Action officielle : SonarSource/sonarcloud-github-action
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=my-org_my-repo
+            -Dsonar.organization=my-org
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
