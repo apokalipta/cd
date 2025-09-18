@@ -17,7 +17,7 @@ jobs:
             password: ${{ secrets.DOCKER_PASSWORD }}
             registry: docker.io
             repository: estebanbanbanban/cd
-            tag_with_sha: true #sdqzfv
+            tag_with_sha: ${{ github.sha }}
         - name: Checkout code
           uses: actions/checkout@v4
 
